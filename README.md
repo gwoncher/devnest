@@ -1,69 +1,71 @@
-# React + TypeScript + Vite
+# DevNest - Project Manager Application
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Project Architecture
 
-Currently, two official plugins are available:
+DevNest is a desktop application built with Electron and React, designed to manage and organize local development projects. The application uses the following technology stack:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Frontend Framework**: React 19 + TypeScript
+- **Build Tool**: Vite 7
+- **UI Component Library**: Ant Design 5
+- **Desktop Framework**: Electron 37
+- **Development Tools**: ESLint 9, TypeScript 5.8
 
-## Expanding the ESLint configuration
+The project follows a modular design, divided into these main components:
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+1. **Electron Main Process**: Responsible for file system operations, project configuration management, and communication with the renderer process
+2. **React Renderer Process**: Handles the user interface display and interactions
+3. **IPC Communication Layer**: Securely connects the main process and renderer process through a preload script
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Getting Started
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+The project offers multiple startup methods for different development and production needs:
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+1. **Development Mode**:
+   ```
+   npm run electron:dev
+   ```
+   Simultaneously launches the Vite development server and Electron application with hot reload support
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+2. **Frontend Development Only**:
+   ```
+   npm run dev
+   ```
+   Starts only the Vite development server for frontend development
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+3. **Preview Production Version**:
+   ```
+   npm run electron:preview
+   ```
+   Builds the application and launches Electron in production mode
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+4. **Build Application**:
+   ```
+   npm run electron:build
+   ```
+   Creates a distributable desktop application, output to the dist_electron directory
+
+## Features
+
+DevNest aims to solve the pain points of frontend developers who frequently switch between different projects, offering these core features:
+
+### Project Management
+- **Project List Display**: Clearly shows all added frontend projects, with directory grouping support
+- **Project Search**: Quickly find specific projects (by name or path)
+- **Project Pinning**: Pin frequently used projects for quick access
+- **Project Classification**: Automatically identifies project types (React, Vue, Angular, etc.)
+
+### Project Operations
+- **One-Click Launch**: Directly open selected projects with the Cursor editor
+- **Project Addition**: Select and add existing project directories through a file dialog
+- **Project Creation**: Support for creating new projects in specified directories (feature in development)
+
+### Data Persistence
+- **Configuration Storage**: Automatically saves project configurations to the user data directory
+- **Project Scanning**: Automatically scans added directories to identify frontend projects
+
+### User Interface
+- **Directory Grouping**: Organizes projects by directory with quick switching
+- **Card View**: Displays project information in card format
+- **Responsive Design**: Adapts to different window sizes
+
+DevNest significantly improves developer efficiency in multi-project environments by providing a centralized interface to manage, launch, and organize all local frontend projects.
