@@ -1,18 +1,5 @@
-import { useState, useEffect, useDeferredValue, memo } from "react"
-import {
-  Button,
-  Card,
-  List,
-  Empty,
-  Spin,
-  message,
-  Typography,
-  Tag,
-  Space,
-  Input,
-  Dropdown,
-  Tabs
-} from "antd"
+import { useState, useEffect, useDeferredValue, memo, useCallback, useRef } from "react";
+import { Button, Card, List, Empty, Spin, message, Typography, Tag, Input, Dropdown, Tabs } from "antd";
 import {
   FolderAddOutlined,
   PlusOutlined,
@@ -20,17 +7,12 @@ import {
   SearchOutlined,
   PushpinOutlined,
   PushpinFilled,
-  MoreOutlined
-} from "@ant-design/icons"
-import type {
-  Project,
-  ProjectConfig,
-  SelectDirectoryResult
-} from "../types/project"
+  MoreOutlined,
+} from "@ant-design/icons";
+import type { Project, ProjectConfig, SelectDirectoryResult } from "../types/project";
 
-const { Title, Text } = Typography
-const { Search } = Input
-const { TabPane } = Tabs
+const { Title, Text } = Typography;
+const { Search } = Input;
 
 // 使用memo优化项目列表渲染
 const ProjectListMemo = memo(
@@ -38,18 +20,18 @@ const ProjectListMemo = memo(
     projects,
     openingProject,
     handleOpenProject,
-    handleTogglePin
+    handleTogglePin,
   }: {
-    projects: Project[]
-    openingProject: string | null
-    handleOpenProject: (project: Project) => void
-    handleTogglePin: (project: Project, e?: React.MouseEvent) => void
+    projects: Project[];
+    openingProject: string | null;
+    handleOpenProject: (project: Project) => void;
+    handleTogglePin: (project: Project, e?: React.MouseEvent) => void;
   }) => {
     return (
       <List
         grid={{ gutter: 16, xs: 1, sm: 2, md: 3, lg: 3, xl: 4, xxl: 4 }}
         dataSource={projects}
-        renderItem={(project) => (
+        renderItem={project => (
           <List.Item key={project.id}>
             <Card
               hoverable
@@ -58,7 +40,10 @@ const ProjectListMemo = memo(
                   <div className="flex items-center">
                     {project.pinned && (
                       <PushpinFilled
-                        style={{ color: "#1890ff", marginRight: 8 }}
+                        style={{
+                          color: "#1890ff",
+                          marginRight: 8,
+                        }}
                       />
                     )}
                     <span>{project.name}</span>
@@ -73,31 +58,25 @@ const ProjectListMemo = memo(
                       items: [
                         {
                           key: "pin",
-                          icon: project.pinned ? (
-                            <PushpinFilled />
-                          ) : (
-                            <PushpinOutlined />
-                          ),
+                          icon: project.pinned ? <PushpinFilled /> : <PushpinOutlined />,
                           label: project.pinned ? "取消置顶" : "置顶",
-                          onClick: (e) => {
-                            e.domEvent.stopPropagation()
-                            e.domEvent.nativeEvent.stopPropagation()
-                            handleTogglePin(project)
-                          }
-                        }
-                      ]
+                          onClick: e => {
+                            e.domEvent.stopPropagation();
+                            e.domEvent.nativeEvent.stopPropagation();
+                            handleTogglePin(project);
+                          },
+                        },
+                      ],
                     }}
                     placement="bottomRight"
-                    trigger={["hover"]}
-                  >
+                    trigger={["hover"]}>
                     <MoreOutlined className="cursor-pointer" />
                   </Dropdown>
                 </>
               }
               onClick={() => handleOpenProject(project)}
               loading={openingProject === project.id}
-              className={project.pinned ? "border-blue-400 border-2" : ""}
-            >
+              className={project.pinned ? "border-blue-400 border-2" : ""}>
               <div className="flex items-center justify-between">
                 <Text type="secondary" ellipsis={{ tooltip: project.path }}>
                   {project.path}
@@ -107,236 +86,243 @@ const ProjectListMemo = memo(
           </List.Item>
         )}
       />
-    )
+    );
   }
-)
+);
+
+// 防抖Hook
+function useDebounce<T extends (...args: any[]) => any>(fn: T, delay: number): T {
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const fnRef = useRef<T>(fn);
+
+  // 更新函数引用
+  useEffect(() => {
+    fnRef.current = fn;
+  }, [fn]);
+
+  return useCallback(
+    (...args: Parameters<T>) => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+      timerRef.current = setTimeout(() => {
+        fnRef.current(...args);
+      }, delay);
+    },
+    [delay]
+  ) as T;
+}
 
 const HomePage = () => {
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(true);
   const [projectConfig, setProjectConfig] = useState<ProjectConfig>({
     projectDirectories: [],
-    projects: []
-  })
-  const [openingProject, setOpeningProject] = useState<string | null>(null)
-  const [searchQuery, setSearchQuery] = useState("")
-  const [activeTab, setActiveTab] = useState<string>("all")
+    projects: [],
+  });
+  const [openingProject, setOpeningProject] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [inputValue, setInputValue] = useState("");
+  const [activeTab, setActiveTab] = useState<string>("all");
 
   // 使用useDeferredValue延迟处理搜索查询，不阻塞UI渲染
-  const deferredSearchQuery = useDeferredValue(searchQuery)
+  const deferredSearchQuery = useDeferredValue(searchQuery);
 
   // 获取项目列表
   const fetchProjects = async () => {
     try {
-      setLoading(true)
-      const config = await window.electron?.getProjects()
-      setProjectConfig(config || { projectDirectories: [], projects: [] })
+      setLoading(true);
+      const config = await window.electron?.getProjects();
+      setProjectConfig(config || { projectDirectories: [], projects: [] });
 
       // 如果有项目目录，默认选择第一个目录作为激活的Tab
       if ((config?.projectDirectories || []).length > 0) {
-        setActiveTab(config?.projectDirectories[0] || "all")
+        setActiveTab(config?.projectDirectories[0] || "all");
       }
     } catch (error) {
-      console.error("获取项目失败:", error)
-      message.error("获取项目列表失败")
+      console.error("获取项目失败:", error);
+      message.error("获取项目列表失败");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   // 选择项目目录
   const handleSelectDirectory = async () => {
     try {
-      setLoading(true)
-      const result = (await window.electron?.selectProjectDirectory()) as
-        | SelectDirectoryResult
-        | undefined
+      setLoading(true);
+      const result = (await window.electron?.selectProjectDirectory()) as SelectDirectoryResult | undefined;
 
       if (!result) {
-        message.info("未选择目录")
-        return
+        message.info("未选择目录");
+        return;
       }
 
       if (!result.success) {
-        message.warning(result.message || "添加目录失败")
-        return
+        message.warning(result.message || "添加目录失败");
+        return;
       }
 
-      message.success(`成功添加目录: ${result.directory}`)
-      await fetchProjects()
+      message.success(`成功添加目录: ${result.directory}`);
+      await fetchProjects();
 
       // 添加成功后切换到新添加的目录Tab
       if (result.directory) {
-        setActiveTab(result.directory)
+        setActiveTab(result.directory);
       }
     } catch (error) {
-      console.error("选择目录失败:", error)
-      message.error("添加项目目录失败")
+      console.error("选择目录失败:", error);
+      message.error("添加项目目录失败");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   // 打开项目
   const handleOpenProject = async (project: Project) => {
     try {
-      setOpeningProject(project.id)
-      const success = await window.electron?.openProject(project.path)
+      setOpeningProject(project.id);
+      const success = await window.electron?.openProject(project.path);
 
       if (success) {
-        message.success(`正在使用 Cursor 打开项目: ${project.name}`)
+        message.success(`正在使用 Cursor 打开项目: ${project.name}`);
       } else {
-        message.error("打开项目失败，请确保已安装 Cursor")
+        message.error("打开项目失败，请确保已安装 Cursor");
       }
     } catch (error) {
-      console.error("打开项目失败:", error)
-      message.error("打开项目失败")
+      console.error("打开项目失败:", error);
+      message.error("打开项目失败");
     } finally {
-      setOpeningProject(null)
+      setOpeningProject(null);
     }
-  }
+  };
 
   // 搜索项目
-  const handleSearch = (value: string) => {
-    setSearchQuery(value)
-  }
+  const handleSearch = useCallback((value: string) => {
+    setSearchQuery(value);
+  }, []);
+
+  // 使用防抖处理搜索
+  const debouncedSearch = useDebounce(handleSearch, 300);
+
+  // 处理输入变化
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setInputValue(value);
+    debouncedSearch(value);
+  };
 
   // 创建新项目
   const handleCreateProject = () => {
     // 获取当前选中的目录
-    const targetDirectory = activeTab === "all" ? undefined : activeTab
+    const targetDirectory = activeTab === "all" ? undefined : activeTab;
 
-    message.info(`将在${targetDirectory || "默认位置"}创建新项目`)
+    message.info(`将在${targetDirectory || "默认位置"}创建新项目`);
     // 这里添加创建项目的逻辑
-  }
+  };
 
   // 切换项目置顶状态
   const handleTogglePin = async (project: Project, e?: React.MouseEvent) => {
     if (e) {
-      e.stopPropagation() // 阻止事件冒泡，避免触发卡片的点击事件
+      e.stopPropagation(); // 阻止事件冒泡，避免触发卡片的点击事件
     }
 
     try {
-      const updatedProjects = projectConfig.projects.map((p) => {
+      const updatedProjects = projectConfig.projects.map(p => {
         if (p.id === project.id) {
-          return { ...p, pinned: !p.pinned }
+          return { ...p, pinned: !p.pinned };
         }
-        return p
-      })
+        return p;
+      });
 
       const updatedConfig = {
         ...projectConfig,
-        projects: updatedProjects
-      }
+        projects: updatedProjects,
+      };
 
       // 保存更新后的项目配置
-      await window.electron?.saveProjects(updatedConfig)
-      setProjectConfig(updatedConfig)
+      await window.electron?.saveProjects(updatedConfig);
+      setProjectConfig(updatedConfig);
 
-      message.success(
-        `${project.pinned ? "取消置顶" : "置顶"}项目: ${project.name}`
-      )
+      message.success(`${project.pinned ? "取消置顶" : "置顶"}项目: ${project.name}`);
     } catch (error) {
-      console.error("更新项目失败:", error)
-      message.error("操作失败")
+      console.error("更新项目失败:", error);
+      message.error("操作失败");
     }
-  }
+  };
 
   // Tab切换处理
   const handleTabChange = (key: string) => {
-    setActiveTab(key)
-  }
+    setActiveTab(key);
+  };
 
   // 根据当前选择的Tab和搜索条件过滤项目
   const getFilteredProjects = () => {
     // 首先根据搜索条件过滤
     const searchFiltered = deferredSearchQuery
       ? projectConfig.projects.filter(
-          (project) =>
-            project.name
-              .toLowerCase()
-              .includes(deferredSearchQuery.toLowerCase()) ||
-            project.path
-              .toLowerCase()
-              .includes(deferredSearchQuery.toLowerCase())
+          project =>
+            project.name.toLowerCase().includes(deferredSearchQuery.toLowerCase()) ||
+            project.path.toLowerCase().includes(deferredSearchQuery.toLowerCase())
         )
-      : projectConfig.projects
+      : projectConfig.projects;
 
     // 然后根据当前选择的Tab进一步过滤
     if (activeTab === "all") {
-      return searchFiltered
+      return searchFiltered;
     } else {
       // 过滤出属于当前目录的项目
-      return searchFiltered.filter((project) =>
-        project.path.startsWith(activeTab)
-      )
+      return searchFiltered.filter(project => project.path.startsWith(activeTab));
     }
-  }
+  };
 
   // 获取过滤后的项目并排序
-  const filteredProjects = getFilteredProjects()
+  const filteredProjects = getFilteredProjects();
 
   // 排序项目，置顶的排在前面
   const sortedProjects = [...filteredProjects].sort((a, b) => {
-    if (a.pinned && !b.pinned) return -1
-    if (!a.pinned && b.pinned) return 1
-    return 0
-  })
+    if (a.pinned && !b.pinned) return -1;
+    if (!a.pinned && b.pinned) return 1;
+    return 0;
+  });
 
   // 首次加载时获取项目列表
   useEffect(() => {
-    fetchProjects()
-  }, [])
+    fetchProjects();
+  }, []);
 
   // 渲染Tab内容
   const renderTabContent = () => {
     return (
       <>
         <div className="flex justify-end mb-4">
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={handleCreateProject}
-          >
-            在{activeTab === "all" ? "默认位置" : "此目录"}创建新项目
+          <Button type="primary" icon={<PlusOutlined />} onClick={handleCreateProject}>
+            在{activeTab === "all" ? "默认位置" : "此目录"}
+            创建新项目
           </Button>
         </div>
         {renderProjects()}
       </>
-    )
-  }
+    );
+  };
 
   // 渲染项目列表
   const renderProjects = () => {
     if (loading) {
-      return <Spin size="large" className="my-8" />
+      return <Spin size="large" className="my-8" />;
     }
 
     if (projectConfig.projects.length === 0) {
       return (
-        <Empty
-          image={Empty.PRESENTED_IMAGE_SIMPLE}
-          description="暂无项目，请添加项目目录"
-          className="my-8"
-        >
-          <Button
-            type="primary"
-            icon={<FolderAddOutlined />}
-            onClick={handleSelectDirectory}
-          >
+        <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无项目，请添加项目目录" className="my-8">
+          <Button type="primary" icon={<FolderAddOutlined />} onClick={handleSelectDirectory}>
             添加项目目录
           </Button>
         </Empty>
-      )
+      );
     }
 
     if (filteredProjects.length === 0) {
-      return (
-        <Empty
-          image={Empty.PRESENTED_IMAGE_SIMPLE}
-          description="没有找到匹配的项目"
-          className="my-8"
-        />
-      )
+      return <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="没有找到匹配的项目" className="my-8" />;
     }
 
     // 使用memo组件渲染项目列表
@@ -347,8 +333,8 @@ const HomePage = () => {
         handleOpenProject={handleOpenProject}
         handleTogglePin={handleTogglePin}
       />
-    )
-  }
+    );
+  };
 
   return (
     <div className="p-6">
@@ -365,7 +351,8 @@ const HomePage = () => {
           allowClear
           enterButton={<SearchOutlined />}
           onSearch={handleSearch}
-          onChange={(e) => handleSearch(e.target.value)}
+          onChange={handleInputChange}
+          value={inputValue}
           style={{ maxWidth: "400px" }}
         />
       </div>
@@ -379,9 +366,9 @@ const HomePage = () => {
             {
               key: "all",
               label: "全部项目",
-              children: renderTabContent()
+              children: renderTabContent(),
             },
-            ...projectConfig.projectDirectories.map((dir) => ({
+            ...projectConfig.projectDirectories.map(dir => ({
               key: dir,
               label: (
                 <span>
@@ -389,15 +376,15 @@ const HomePage = () => {
                   {dir.split("/").pop() || dir}
                 </span>
               ),
-              children: renderTabContent()
-            }))
+              children: renderTabContent(),
+            })),
           ]}
         />
       ) : (
         renderProjects()
       )}
     </div>
-  )
-}
+  );
+};
 
-export default HomePage
+export default HomePage;

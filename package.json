@@ -2,7 +2,7 @@
   "name": "devnest",
   "version": "0.1.0",
   "description": "A desktop application for managing and organizing local development projects. DevNest helps developers quickly access, organize, and launch their projects from a central interface.",
-  "main": "electron/main.js",
+  "main": "electron/main.mjs",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -49,35 +49,19 @@
     "directories": {
       "output": "dist_electron"
     },
-    "files": [
-      "dist/**/*",
-      "electron/**/*"
-    ],
+    "files": ["dist/**/*", "electron/**/*"],
     "mac": {
       "category": "public.app-category.developer-tools"
     },
     "win": {
-      "target": [
-        "nsis"
-      ]
+      "target": ["nsis"]
     },
     "linux": {
-      "target": [
-        "AppImage",
-        "deb"
-      ],
+      "target": ["AppImage", "deb"],
       "category": "Development"
     }
   },
-  "keywords": [
-    "project-management",
-    "frontend",
-    "developer-tools",
-    "electron",
-    "react",
-    "typescript",
-    "vite"
-  ],
+  "keywords": ["project-management", "frontend", "developer-tools", "electron", "react", "typescript", "vite"],
   "author": {
     "name": "Your Name",
     "email": "your.email@example.com",
