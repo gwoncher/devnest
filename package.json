@@ -1,7 +1,7 @@
 {
-  "name": "my-project-manager",
-  "private": true,
-  "version": "0.0.0",
+  "name": "devnest",
+  "version": "0.1.0",
+  "description": "A desktop application for managing and organizing local development projects. DevNest helps developers quickly access, organize, and launch their projects from a central interface.",
   "main": "electron/main.js",
   "type": "module",
   "scripts": {
@@ -44,8 +44,8 @@
     "vite": "^7.0.0"
   },
   "build": {
-    "appId": "com.yourname.my-project-manager",
-    "productName": "My Project Manager",
+    "appId": "com.devnest.app",
+    "productName": "DevNest",
     "directories": {
       "output": "dist_electron"
     },
@@ -54,7 +54,7 @@
       "electron/**/*"
     ],
     "mac": {
-      "category": "public.app-category.productivity"
+      "category": "public.app-category.developer-tools"
     },
     "win": {
       "target": [
@@ -68,5 +68,29 @@
       ],
       "category": "Development"
     }
-  }
+  },
+  "keywords": [
+    "project-management",
+    "frontend",
+    "developer-tools",
+    "electron",
+    "react",
+    "typescript",
+    "vite"
+  ],
+  "author": {
+    "name": "Your Name",
+    "email": "your.email@example.com",
+    "url": "https://github.com/yourusername"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/devnest"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/devnest/issues"
+  },
+  "homepage": "https://github.com/yourusername/devnest#readme",
+  "private": false
 }
