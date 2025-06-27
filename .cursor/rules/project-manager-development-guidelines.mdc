@@ -1,0 +1,110 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# 项目管理器开发指南
+
+## 模块化原则
+统一使用 esm 不要使用 cjs
+
+## 代码组织原则
+
+### 组件结构
+- 采用功能模块化组织组件
+- 每个组件应专注于单一功能
+- 组件目录结构示例:
+  ```
+  src/components/ProjectList/
+  ├── ProjectList.tsx       # 主组件
+  ├── ProjectListItem.tsx   # 列表项组件
+  ├── ProjectFilter.tsx     # 过滤器组件
+  ├── index.ts             # 导出接口
+  └── styles.css           # 组件样式
+  ```
+
+### 状态管理
+- 使用 React Context 管理全局状态
+- 本地项目数据存储在 Electron 主进程中
+- 通过 IPC 通信在渲染进程和主进程间传递数据
+
+## 文件系统操作
+
+### 项目文件处理
+- 所有文件系统操作应在 Electron 主进程中执行
+- 使用异步操作处理文件读写
+- 实现错误处理和重试机制
+- 示例代码:
+  ```typescript
+  // 在 electron/main.cjs 中
+  const { app, ipcMain } = require('electron');
+  const fs = require('fs');
+  const path = require('path');
+  
+  ipcMain.handle('get-projects', async () => {
+    try {
+      const configPath = path.join(app.getPath('userData'), 'projects.json');
+      if (!fs.existsSync(configPath)) {
+        return [];
+      }
+      const data = await fs.promises.readFile(configPath, 'utf8');
+      return JSON.parse(data);
+    } catch (error) {
+      console.error('Failed to read projects:', error);
+      return [];
+    }
+  });
+  ```
+
+### 路径处理
+- 使用 `path.join()` 而非字符串拼接
+- 考虑跨平台路径差异 (Windows/macOS/Linux)
+- 使用相对路径存储项目配置
+
+## UI/UX 设计原则
+
+### 界面设计
+- 使用响应式布局适应不同窗口大小
+- 实现深色/浅色主题切换
+- 提供清晰的视觉层次结构
+- 使用一致的颜色和字体系统
+
+### 交互设计
+- 提供拖放功能添加项目
+- 实现键盘快捷键
+- 添加上下文菜单
+- 所有操作提供即时视觉反馈
+
+## 性能优化
+
+### 渲染优化
+- 使用虚拟列表渲染大量项目
+- 实现组件懒加载
+- 避免不必要的重渲染
+
+### 启动优化
+- 减少主进程启动时间
+- 优化项目数据加载
+- 实现数据缓存机制
+
+## 测试策略
+
+### 单元测试
+- 为核心功能编写单元测试
+- 模拟 Electron API 进行组件测试
+
+### 端到端测试
+- 使用 Spectron 进行 Electron 应用测试
+- 测试关键用户流程
+
+## 安全考虑
+
+### 数据安全
+- 验证所有用户输入
+- 安全处理文件路径
+- 避免执行不受信任的命令
+
+### 应用安全
+- 遵循 Electron 安全最佳实践
+- 禁用不必要的权限
+- 定期更新依赖

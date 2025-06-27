@@ -1,0 +1,36 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Electron and Vite Integration Guide
+
+## Project Structure
+- Main Electron process files are in the `electron/` directory
+- React/Vite frontend code is in the `src/` directory
+- Entry point for Electron is defined in `package.json` as `"main": "electron/main.cjs"`
+
+## ES Modules vs CommonJS
+This project uses ES Modules (`"type": "module"` in `package.json`), but Electron requires CommonJS for its main process.
+
+### Important Rules:
+1. Electron main process files should use `.cjs` extension (not `.js`)
+2. In `.cjs` files, use `require()` and `module.exports` (CommonJS)
+3. In `.js/.ts/.tsx` files, use `import` and `export` (ES Modules)
+
+## Key Files
+- [electron/main.cjs](mdc:electron/main.cjs): Electron main process entry point
+- [electron/preload.cjs](mdc:electron/preload.cjs): Preload script for Electron
+- [src/App.tsx](mdc:src/App.tsx): Main React component
+- [vite.config.ts](mdc:vite.config.ts): Vite configuration
+- [package.json](mdc:package.json): Project configuration
+
+## Running the Application
+- Development: `npm run electron:dev` (runs Vite dev server + Electron)
+- Build: `npm run electron:build` (builds distributable app)
+- Preview: `npm run electron:preview` (builds and runs production version)
+
+## Common Issues
+1. `__dirname` is not defined in ES modules - use `fileURLToPath` and `path.dirname`
+2. `require` is not defined in ES modules - use `import` instead
+3. Always use `.cjs` extension for Electron main process files

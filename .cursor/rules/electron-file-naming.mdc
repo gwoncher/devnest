@@ -1,0 +1,33 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Electron File Naming Conventions
+
+## File Extensions
+- `.cjs` - CommonJS modules (for Electron main process files)
+- `.js/.ts/.tsx` - ES modules (for React/Vite code)
+
+## Why This Matters
+Node.js treats files differently based on extension and the `"type"` field in `package.json`:
+
+1. When `"type": "module"` is set in `package.json`:
+   - `.js` files are treated as ES modules (can use `import`/`export`)
+   - `.cjs` files are treated as CommonJS modules (can use `require`/`module.exports`)
+
+2. Electron's main process works best with CommonJS:
+   - Main process files should use `.cjs` extension
+   - Preload scripts should use `.cjs` extension
+
+## Examples
+- ✅ `electron/main.cjs` - Correct for Electron main process
+- ✅ `electron/preload.cjs` - Correct for Electron preload script
+- ❌ `electron/main.js` - Will cause errors with `require()` and `__dirname`
+
+## Converting JS to CJS
+When converting a `.js` file to `.cjs`:
+1. Rename the file extension
+2. Use `require()` instead of `import`
+3. Use `module.exports` instead of `export`
+4. Keep using `__dirname` and `__filename` as needed
