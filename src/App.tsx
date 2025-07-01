@@ -7,8 +7,6 @@ import { BulbOutlined, BulbFilled } from "@ant-design/icons";
 
 const { Header, Content, Footer } = Layout;
 
-// 定义 electron 接口类型
-
 function App() {
   const { themeMode, toggleThemeMode } = useThemeStore();
 

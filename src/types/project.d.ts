@@ -11,7 +11,6 @@ export interface Project {
 export interface ProjectConfig {
   projectDirectories: string[];
   projects: Project[];
-  tabOrder?: string[]; // 存储标签页的顺序
 }
 
 // 应用配置类型定义

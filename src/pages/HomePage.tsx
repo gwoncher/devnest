@@ -21,6 +21,7 @@ const HomePage = () => {
     togglePinProject,
     setActiveTab,
     getFilteredProjects,
+    setGroupOrder,
   } = useProjectStore();
 
   const { appConfig, settingsVisible, setSettingsVisible, fetchAppConfig, setDefaultEditor } = useConfigStore();
@@ -84,6 +85,10 @@ const HomePage = () => {
     });
   });
 
+  const handleGroupOrderChange = useMemoizedFn((items: string[]) => {
+    setGroupOrder(items);
+  });
+
   // 准备标签页数据
   const tabItems = [
     ...(projectConfig.projectDirectories || []).map(dir => ({
@@ -127,7 +132,12 @@ const HomePage = () => {
         </div>
       </div>
 
-      <ProjectTabs activeTab={localActiveTab} tabItems={tabItems} onChange={handleTabChange} />
+      <ProjectTabs
+        activeTab={localActiveTab || activeTab}
+        tabItems={tabItems}
+        onChange={handleTabChange}
+        onSortEnd={handleGroupOrderChange}
+      />
     </div>
   );
 };

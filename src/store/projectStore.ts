@@ -20,6 +20,8 @@ interface ProjectState {
   selectProjectDirectory: () => Promise<void>;
   openProject: (project: Project) => Promise<void>;
   togglePinProject: (project: Project) => Promise<void>;
+  setGroupOrder: (order: string[]) => Promise<void>;
+  saveProjectConfig: (config: ProjectConfig) => Promise<void>;
 
   // Computed
   getFilteredProjects: () => Project[];
@@ -30,9 +32,10 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   projectConfig: {
     projectDirectories: [],
     projects: [],
+    groupOrder: [],
   },
   openingProject: null,
-  activeTab: "all",
+  activeTab: "",
   searchQuery: "",
 
   // Actions
@@ -94,7 +97,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   },
 
   togglePinProject: async project => {
-    const { projectConfig } = get();
+    const { projectConfig, saveProjectConfig } = get();
     const updatedProjects = projectConfig.projects.map(p => (p.id === project.id ? { ...p, pinned: !p.pinned } : p));
 
     const updatedConfig = {
@@ -102,17 +105,28 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       projects: updatedProjects,
     };
 
-    try {
-      const success = await window.electron?.saveProjects(updatedConfig);
-      if (success) {
-        set({ projectConfig: updatedConfig });
-      }
-    } catch (error) {
-      console.error("Failed to toggle pin status:", error);
-    }
+    await saveProjectConfig(updatedConfig);
   },
 
+  setGroupOrder: async (order: string[]) => {
+    const { projectConfig, saveProjectConfig } = get();
+    const updatedConfig = { ...projectConfig, projectDirectories: order };
+    await saveProjectConfig(updatedConfig);
+  },
+
+  // 保存项目配置
+  saveProjectConfig: async config => {
+    try {
+      const success = await window.electron?.saveProjects(config);
+      if (success) {
+        set({ projectConfig: config });
+      }
+    } catch (error) {
+      console.error("Failed to save project config:", error);
+    }
+  },
   // Computed
+
   getFilteredProjects: () => {
     const { projectConfig, activeTab, searchQuery } = get();
 
