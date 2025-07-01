@@ -84,6 +84,13 @@
   margin-bottom: 2rem;
 }
 
-.bg-background {
-  background-color: #141414;
+.mx-auto {
+  margin-left: auto;
+  margin-right: auto;
+}
+.p-4 {
+  padding: 1rem;
+}
+.ml-2 {
+  margin-left: 0.5rem;
 }

@@ -18,15 +18,23 @@
     "node": "^20.19.0 || >=22.12.0"
   },
   "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
+    "ahooks": "^3.9.0",
     "antd": "^5.26.2",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "rc-virtual-list": "^3.19.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-window": "^1.8.11",
+    "uninstall": "^0.0.0",
+    "zustand": "^5.0.6"
   },
   "devDependencies": {
     "@eslint/js": "^9.29.0",
     "@types/node": "^24.0.4",
-    "@types/react": "^19.1.8",
-    "@types/react-dom": "^19.1.6",
+    "@types/react": "^18.3.23",
+    "@types/react-dom": "^18.3.7",
     "@vitejs/plugin-react": "^4.5.2",
     "autoprefixer": "^10.4.21",
     "concurrently": "^8.2.2",
@@ -49,19 +57,35 @@
     "directories": {
       "output": "dist_electron"
     },
-    "files": ["dist/**/*", "electron/**/*"],
+    "files": [
+      "dist/**/*",
+      "electron/**/*"
+    ],
     "mac": {
       "category": "public.app-category.developer-tools"
     },
     "win": {
-      "target": ["nsis"]
+      "target": [
+        "nsis"
+      ]
     },
     "linux": {
-      "target": ["AppImage", "deb"],
+      "target": [
+        "AppImage",
+        "deb"
+      ],
       "category": "Development"
     }
   },
-  "keywords": ["project-management", "frontend", "developer-tools", "electron", "react", "typescript", "vite"],
+  "keywords": [
+    "project-management",
+    "frontend",
+    "developer-tools",
+    "electron",
+    "react",
+    "typescript",
+    "vite"
+  ],
   "author": {
     "name": "Your Name",
     "email": "your.email@example.com",
