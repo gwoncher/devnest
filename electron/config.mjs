@@ -2,7 +2,7 @@
  * @Author: quanzhe
  * @Date: 2025-06-30 13:58:13
  * @LastEditors: quanzhe
- * @LastEditTime: 2025-06-30 13:58:13
+ * @LastEditTime: 2025-07-02 21:50:30
  * @Description:
  */
 
@@ -56,6 +56,7 @@ export const getAppConfig = () => {
   return {
     editorPath: "",
     defaultEditor: process.platform === "darwin" ? "cursor" : "cursor",
+    searchShortcut: "",
   };
 };
 

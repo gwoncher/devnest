@@ -3,6 +3,7 @@ import path from "path";
 import { setupIpcHandlers } from "./ipc.mjs";
 import { createMainWindow } from "./window.mjs";
 import { isDev } from "./constants.mjs";
+import { registerGlobalShortcuts } from "./shortcut.mjs";
 
 // 保持对窗口对象的全局引用，避免 JavaScript 对象被垃圾回收时窗口关闭
 let mainWindow;
@@ -20,18 +21,25 @@ function initializeApp() {
   }
 
   // 创建主窗口
-  mainWindow = createMainWindow(preloadPath, isDev, app.getAppPath());
+  mainWindow = createMainWindow({ preloadPath, appPath: app.getAppPath() });
 
-  // 当窗口关闭时触发
-  mainWindow.on("closed", function () {
-    mainWindow = null;
+  // 在macOS上，处理窗口关闭事件，只隐藏窗口而不销毁
+  mainWindow.on("close", e => {
+    if (process.platform === "darwin" && !app.isQuiting) {
+      e.preventDefault();
+      mainWindow.hide();
+      return false;
+    }
   });
 
   // 只有在尚未初始化的情况下才设置IPC处理程序
   if (!ipcHandlersInitialized) {
-    setupIpcHandlers(mainWindow, isDev);
+    setupIpcHandlers({ mainWindow }, isDev);
     ipcHandlersInitialized = true;
   }
+
+  // 注册全局快捷键
+  registerGlobalShortcuts({ preloadPath, appPath: app.getAppPath() });
 }
 
 // 当 Electron 完成初始化并准备创建浏览器窗口时调用此方法
@@ -45,7 +53,11 @@ app.on("window-all-closed", function () {
 });
 
 app.on("activate", function () {
-  // 在 macOS 上，当点击 dock 图标并且没有其他窗口打开时，
-  // 通常在应用程序中重新创建一个窗口
-  if (mainWindow === null) initializeApp();
+  if (mainWindow && process.platform === "darwin") {
+    mainWindow.show();
+  }
+});
+
+app.on("before-quit", () => {
+  app.isQuiting = true;
 });

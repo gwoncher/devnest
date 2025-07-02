@@ -14,12 +14,14 @@ interface ConfigState {
   fetchAppConfig: () => Promise<void>;
   setEditorPath: (path: string) => Promise<boolean>;
   setDefaultEditor: (editor: EditorType) => Promise<boolean>;
+  setSearchShortcut: (shortcut: string) => Promise<boolean>;
 }
 
 export const useConfigStore = create<ConfigState>(set => ({
   appConfig: {
     editorPath: "",
     defaultEditor: EditorType.Cursor,
+    searchShortcut: "Command+Space",
   },
   settingsVisible: false,
 
@@ -71,6 +73,24 @@ export const useConfigStore = create<ConfigState>(set => ({
       return success || false;
     } catch (error) {
       console.error("Failed to set default editor:", error);
+      return false;
+    }
+  },
+
+  setSearchShortcut: async shortcut => {
+    try {
+      const success = await window.electron?.setSearchShortcut(shortcut);
+      if (success) {
+        set(state => ({
+          appConfig: {
+            ...state.appConfig,
+            searchShortcut: shortcut,
+          },
+        }));
+      }
+      return success || false;
+    } catch (error) {
+      console.error("Failed to set search shortcut:", error);
       return false;
     }
   },

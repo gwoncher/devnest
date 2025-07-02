@@ -21,6 +21,9 @@ contextBridge.exposeInMainWorld("electron", {
   setEditorPath: editorPath => ipcRenderer.invoke("set-editor-path", editorPath),
   setDefaultEditor: editor => ipcRenderer.invoke("set-default-editor", editor),
 
+  // 快捷键相关方法
+  setSearchShortcut: shortcut => ipcRenderer.invoke("set-search-shortcut", shortcut),
+
   // 获取应用信息
   getAppInfo: () => ipcRenderer.invoke("get-app-info"),
 
@@ -30,4 +33,5 @@ contextBridge.exposeInMainWorld("electron", {
       callback(error);
     });
   },
+  closeSearchWindow: () => ipcRenderer.invoke("close-search-window"),
 });

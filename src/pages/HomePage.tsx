@@ -24,7 +24,8 @@ const HomePage = () => {
     setGroupOrder,
   } = useProjectStore();
 
-  const { appConfig, settingsVisible, setSettingsVisible, fetchAppConfig, setDefaultEditor } = useConfigStore();
+  const { appConfig, settingsVisible, setSettingsVisible, fetchAppConfig, setDefaultEditor, setSearchShortcut } =
+    useConfigStore();
 
   const { appInfo, mainProcessError, fetchAppInfo, setupErrorListener } = useAppStore();
 
@@ -85,6 +86,16 @@ const HomePage = () => {
     });
   });
 
+  const handleSearchShortcutChange = useMemoizedFn(async (shortcut: string) => {
+    const success = await setSearchShortcut(shortcut);
+    if (success) {
+      message.success(`已设置搜索快捷键为: ${shortcut}`);
+    } else {
+      message.error("设置搜索快捷键失败");
+    }
+    return success;
+  });
+
   const handleGroupOrderChange = useMemoizedFn((items: string[]) => {
     setGroupOrder(items);
   });
@@ -127,6 +138,7 @@ const HomePage = () => {
               settingsVisible={settingsVisible}
               onSettingsVisibleChange={setSettingsVisible}
               onEditorChange={handleEditorChange}
+              onSearchShortcutChange={handleSearchShortcutChange}
             />
           </div>
         </div>

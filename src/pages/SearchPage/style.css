@@ -1,0 +1,97 @@
+.search-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: transparent;
+  height: 100vh;
+  padding: 30px;
+}
+
+.search-container {
+  width: 100%;
+  height: 60px;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.search-box {
+  width: 100%;
+  height: 100%;
+  font-size: 24px;
+  padding: 10px 20px;
+  border-radius: 30px;
+  border: 2px solid var(--border-color, #ddd);
+  background-color: var(--input-bg-color, white);
+  color: var(--text-color, #333);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2), 0 3px 6px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+  outline: none;
+  padding-left: 60px;
+}
+
+.search-box:focus {
+  border-color: #1890ff;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.search-icon {
+  position: absolute;
+  top: 50%;
+  left: 20px;
+  transform: translateY(-50%);
+  font-size: 24px;
+  color: var(--icon-color, #999);
+  z-index: 1;
+}
+
+.dropdown {
+  margin-top: 10px;
+  width: 100%;
+  border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25), 0 4px 8px rgba(0, 0, 0, 0.15);
+  background-color: var(--dropdown-bg-color, white);
+  overflow-y: auto;
+  z-index: 10;
+}
+
+.dropdown-item {
+  padding: 15px 20px;
+  border-bottom: 1px solid var(--divider-color, #f0f0f0);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: var(--text-color, #333);
+  position: relative;
+}
+
+.dropdown-item:hover,
+.dropdown-item.selected {
+  background-color: var(--hover-bg-color, #f5f5f5);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2), 0 3px 6px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.no-results {
+  padding: 20px;
+  text-align: center;
+  color: var(--muted-color, #999);
+}
+
+/* Dark mode variables */
+[data-theme="dark"] {
+  --background-color: #121212;
+  --input-bg-color: #1f1f1f;
+  --border-color: #333;
+  --text-color: #e0e0e0;
+  --icon-color: #aaa;
+  --dropdown-bg-color: #1f1f1f;
+  --divider-color: #333;
+  --hover-bg-color: #2a2a2a;
+  --selected-bg-color: #153450;
+  --selected-border-color: #1890ff;
+  --muted-color: #888;
+}

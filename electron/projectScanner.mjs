@@ -68,6 +68,7 @@ export const detectProjectType = projectPath => {
 
     return PROJECT_TYPES.JAVASCRIPT;
   } catch (error) {
+    console.error(`检测项目类型失败 ${projectPath}:`, error);
     return PROJECT_TYPES.JAVASCRIPT;
   }
 };

@@ -3,6 +3,8 @@ import { readProjectsConfig, saveProjectsConfig, getAppConfig, saveAppConfig } f
 import { openProject } from "./openProject.mjs";
 import { scanForProjects } from "./projectScanner.mjs";
 import { getAppInfo } from "./appInfo.mjs";
+import { updateSearchShortcut } from "./shortcut.mjs";
+import { closeSearchWindow } from "./window.mjs";
 
 // 跟踪已注册的处理程序
 const registeredHandlers = new Set();
@@ -38,7 +40,7 @@ const safelyRegisterHandler = (channel, handler) => {
  * @param {BrowserWindow} mainWindow - 主窗口实例
  * @param {boolean} isDev - 是否是开发环境
  */
-export const setupIpcHandlers = (mainWindow, isDev) => {
+export const setupIpcHandlers = ({ mainWindow }, isDev) => {
   // 获取所有项目
   safelyRegisterHandler("get-projects", () => {
     return readProjectsConfig();
@@ -138,6 +140,22 @@ export const setupIpcHandlers = (mainWindow, isDev) => {
     }
   });
 
+  // 设置搜索快捷键
+  safelyRegisterHandler("set-search-shortcut", async (event, shortcut) => {
+    try {
+      return await updateSearchShortcut({ mainWindow, shortcut });
+    } catch (error) {
+      console.error("设置搜索快捷键失败:", error);
+      if (mainWindow) {
+        mainWindow.webContents.send("main-process-error", {
+          message: `设置搜索快捷键失败: ${error.message}`,
+          stack: error.stack,
+        });
+      }
+      return false;
+    }
+  });
+
   // 获取应用配置
   safelyRegisterHandler("get-app-config", () => {
     return getAppConfig();
@@ -146,5 +164,9 @@ export const setupIpcHandlers = (mainWindow, isDev) => {
   // 获取应用信息
   safelyRegisterHandler("get-app-info", () => {
     return getAppInfo(isDev);
+  });
+
+  safelyRegisterHandler("close-search-window", () => {
+    closeSearchWindow();
   });
 };

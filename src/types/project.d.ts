@@ -17,6 +17,7 @@ export interface ProjectConfig {
 export interface AppConfig {
   editorPath: string;
   defaultEditor: EditorType;
+  searchShortcut?: string;
 }
 
 // 选择项目目录结果
@@ -67,6 +68,8 @@ declare global {
       getAppConfig: () => Promise<AppConfig>;
       setEditorPath: (editorPath: string) => Promise<boolean>;
       setDefaultEditor: (editor: EditorType) => Promise<boolean>;
+      setSearchShortcut: (shortcut: string) => Promise<boolean>;
+      closeSearchWindow: () => void;
     };
   }
 }
