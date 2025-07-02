@@ -59,6 +59,11 @@ DevNest aims to solve the pain points of frontend developers who frequently swit
 - **Project Addition**: Select and add existing project directories through a file dialog
 - **Project Creation**: Support for creating new projects in specified directories (feature in development)
 
+### Global Keyboard Shortcuts
+- **Quick Project Search**: Press the configurable global keyboard shortcut to instantly open a search dialog from anywhere in your system
+- **Keyboard Navigation**: Use arrow keys to navigate search results and Enter to launch the selected project
+- **Customizable Shortcut**: Configure your preferred keyboard shortcut through the settings panel
+
 ### Data Persistence
 - **Configuration Storage**: Automatically saves project configurations to the user data directory
 - **Project Scanning**: Automatically scans added directories to identify frontend projects
