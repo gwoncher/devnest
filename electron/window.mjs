@@ -53,8 +53,6 @@ export const createMainWindow = ({ preloadPath, appPath }) => {
     const htmlPath = path.join(appPath, "dist/index.html");
     console.log("HTML path:", htmlPath);
     mainWindow.loadFile(htmlPath);
-    // 临时添加以下行来调试
-    mainWindow.webContents.openDevTools();
   }
 
   // 监听渲染进程的错误
