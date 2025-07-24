@@ -2,7 +2,7 @@
  * @Author: quanzhe
  * @Date: 2025-07-02 14:40:56
  * @LastEditors: quanzhe
- * @LastEditTime: 2025-07-02 17:15:20
+ * @LastEditTime: 2025-07-09 10:22:53
  * @Description:
  */
 
@@ -72,6 +72,7 @@ export default function SearchPage() {
         const success = await window.electron.openProject(project.path);
         if (success) {
           console.log(`成功打开项目: ${project.name}`);
+          window.electron.closeSearchWindow();
         } else {
           console.error(`打开项目失败: ${project.name}`);
         }
@@ -124,7 +125,7 @@ export default function SearchPage() {
         />
       </div>
       {showDropdown && (
-        <div className="dropdown">
+        <div className="dropdown" onMouseDown={e => e.preventDefault()}>
           {results.length > 0 ? (
             results.map((project, index) => (
               <div

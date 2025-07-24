@@ -102,7 +102,7 @@ export const createSearchWindow = ({ preloadPath, appPath }) => {
   });
 
   if (isDev) {
-    searchWindow.loadURL("http://localhost:5173/search");
+    searchWindow.loadURL("http://localhost:5173/#search");
 
     // 在开发环境中配置热重载
     import("electron-reloader")
