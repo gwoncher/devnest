@@ -13,6 +13,8 @@ contextBridge.exposeInMainWorld("electron", {
   // 项目管理相关方法
   getProjects: () => ipcRenderer.invoke("get-projects"),
   selectProjectDirectory: () => ipcRenderer.invoke("select-project-directory"),
+  refreshProjectDirectory: directoryPath => ipcRenderer.invoke("refresh-project-directory", directoryPath),
+  refreshAllDirectories: () => ipcRenderer.invoke("refresh-all-directories"),
   openProject: projectPath => ipcRenderer.invoke("open-project", projectPath),
   saveProjects: config => ipcRenderer.invoke("save-projects", config),
 

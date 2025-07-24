@@ -83,6 +83,142 @@ export const setupIpcHandlers = ({ mainWindow }, isDev) => {
     return { success, directory: selectedDir, projects };
   });
 
+  // 刷新项目目录
+  safelyRegisterHandler("refresh-project-directory", async (event, directoryPath) => {
+    try {
+      const config = readProjectsConfig();
+
+      // 检查目录是否在配置中
+      if (!config.projectDirectories.includes(directoryPath)) {
+        return { success: false, message: "该目录未在配置中" };
+      }
+
+      // 扫描目录中的项目
+      const newProjects = scanForProjects(directoryPath);
+
+      // 获取现有项目中属于该目录的项目
+      const existingProjectsInDir = config.projects.filter(project => project.path.startsWith(directoryPath));
+
+      // 找出新增的项目（通过路径比较）
+      const existingPaths = existingProjectsInDir.map(project => project.path);
+      const addedProjects = newProjects.filter(project => !existingPaths.includes(project.path));
+
+      // 将新项目添加到配置中
+      if (addedProjects.length > 0) {
+        config.projects = [...config.projects, ...addedProjects];
+        const success = saveProjectsConfig(config);
+
+        return {
+          success,
+          directory: directoryPath,
+          addedProjects,
+          totalNew: addedProjects.length,
+          message: `发现 ${addedProjects.length} 个新项目`,
+        };
+      } else {
+        return {
+          success: true,
+          directory: directoryPath,
+          addedProjects: [],
+          totalNew: 0,
+          message: "未发现新项目",
+        };
+      }
+    } catch (error) {
+      console.error("刷新项目目录失败:", error);
+      if (mainWindow) {
+        mainWindow.webContents.send("main-process-error", {
+          message: `刷新项目目录失败: ${error.message}`,
+          stack: error.stack,
+        });
+      }
+      return {
+        success: false,
+        error: error.message,
+        message: "刷新项目目录失败",
+      };
+    }
+  });
+
+  // 扫描所有项目目录
+  safelyRegisterHandler("refresh-all-directories", async () => {
+    try {
+      const config = readProjectsConfig();
+      const allNewProjects = [];
+      const results = [];
+
+      // 遍历所有配置的项目目录
+      for (const directoryPath of config.projectDirectories) {
+        try {
+          // 扫描目录中的项目
+          const newProjects = scanForProjects(directoryPath);
+
+          // 获取现有项目中属于该目录的项目
+          const existingProjectsInDir = config.projects.filter(project => project.path.startsWith(directoryPath));
+
+          // 找出新增的项目（通过路径比较）
+          const existingPaths = existingProjectsInDir.map(project => project.path);
+          const addedProjects = newProjects.filter(project => !existingPaths.includes(project.path));
+
+          if (addedProjects.length > 0) {
+            allNewProjects.push(...addedProjects);
+          }
+
+          results.push({
+            directory: directoryPath,
+            addedProjects,
+            totalNew: addedProjects.length,
+            success: true,
+            message: `发现 ${addedProjects.length} 个新项目`,
+          });
+        } catch (error) {
+          console.error(`扫描目录 ${directoryPath} 失败:`, error);
+          results.push({
+            directory: directoryPath,
+            addedProjects: [],
+            totalNew: 0,
+            success: false,
+            error: error.message,
+            message: `扫描目录失败: ${error.message}`,
+          });
+        }
+      }
+
+      // 将所有新项目添加到配置中
+      if (allNewProjects.length > 0) {
+        config.projects = [...config.projects, ...allNewProjects];
+        const success = saveProjectsConfig(config);
+
+        return {
+          success,
+          results,
+          totalNewProjects: allNewProjects.length,
+          message: `总共发现 ${allNewProjects.length} 个新项目`,
+        };
+      } else {
+        return {
+          success: true,
+          results,
+          totalNewProjects: 0,
+          message: "未发现新项目",
+        };
+      }
+    } catch (error) {
+      console.error("扫描所有目录失败:", error);
+      if (mainWindow) {
+        mainWindow.webContents.send("main-process-error", {
+          message: `扫描所有目录失败: ${error.message}`,
+          stack: error.stack,
+        });
+      }
+      return {
+        success: false,
+        error: error.message,
+        message: "扫描所有目录失败",
+      };
+    }
+  });
+
   // 打开项目
   safelyRegisterHandler("open-project", async (event, projectPath) => {
     try {

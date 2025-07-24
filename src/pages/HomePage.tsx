@@ -1,4 +1,4 @@
-import { useEffect, useState, useTransition } from "react";
+import { useEffect } from "react";
 import { message } from "antd";
 import type { Project } from "../types/project";
 import { EditorType } from "../types/enum";
@@ -10,18 +10,17 @@ const HomePage = () => {
   // 从 Zustand store 获取状态和操作
   const {
     loading,
-    projectConfig,
     openingProject,
     activeTab,
     searchQuery,
     setSearchQuery,
-    fetchProjects,
+    initProject,
     selectProjectDirectory,
     openProject,
     togglePinProject,
-    setActiveTab,
     getFilteredProjects,
     setGroupOrder,
+    refreshAllDirectories,
   } = useProjectStore();
 
   const { appConfig, settingsVisible, setSettingsVisible, fetchAppConfig, setDefaultEditor, setSearchShortcut } =
@@ -29,24 +28,20 @@ const HomePage = () => {
 
   const { appInfo, mainProcessError, fetchAppInfo, setupErrorListener } = useAppStore();
 
-  const [isPending, startTransition] = useTransition();
-
-  const [localActiveTab, setLocalActiveTab] = useState(activeTab);
-
   // 初始化
   useEffect(() => {
     // 设置错误监听器
     setupErrorListener();
 
     // 获取项目列表
-    fetchProjects();
+    initProject();
 
     // 获取应用配置
     fetchAppConfig();
 
     // 获取应用信息
     fetchAppInfo();
-  }, [fetchProjects, fetchAppConfig, fetchAppInfo, setupErrorListener]);
+  }, [initProject, fetchAppConfig, fetchAppInfo, setupErrorListener]);
 
   const handleCreateProject = () => {
     // 创建项目的逻辑
@@ -65,15 +60,6 @@ const HomePage = () => {
       console.error("置顶项目失败:", error);
       message.error("操作失败");
     }
-  });
-
-  const handleTabChange = useMemoizedFn((key: string) => {
-    // 立即更新本地状态，让 UI 快速响应
-    setLocalActiveTab(key);
-    // 使用 startTransition 将标签切换标记为非紧急更新
-    startTransition(() => {
-      setActiveTab(key);
-    });
   });
 
   const handleEditorChange = useMemoizedFn((value: EditorType) => {
@@ -100,15 +86,29 @@ const HomePage = () => {
     setGroupOrder(items);
   });
 
+  const handleRefreshTab = useMemoizedFn(async () => {
+    try {
+      const result = await refreshAllDirectories();
+      if (result.success) {
+        message.success(result.message);
+      } else {
+        message.error(result.message);
+      }
+    } catch (error) {
+      console.error("刷新标签页失败:", error);
+      message.error("刷新失败");
+    }
+  });
+
   // 准备标签页数据
   const tabItems = [
-    ...(projectConfig.projectDirectories || []).map(dir => ({
-      key: dir,
-      label: dir.split("/").pop() || dir,
+    ...(getFilteredProjects() || []).map(data => ({
+      key: data.key,
+      label: data.label,
       children: (
         <ProjectList
-          projects={getFilteredProjects()}
-          loading={isPending || loading}
+          projects={data.projects}
+          loading={loading}
           openingProject={openingProject}
           searchQuery={searchQuery}
           onOpenProject={openProject}
@@ -145,10 +145,10 @@ const HomePage = () => {
       </div>
 
       <ProjectTabs
-        activeTab={localActiveTab || activeTab}
+        activeTab={activeTab}
         tabItems={tabItems}
-        onChange={handleTabChange}
         onSortEnd={handleGroupOrderChange}
+        onRefreshTab={handleRefreshTab}
       />
     </div>
   );

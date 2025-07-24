@@ -56,20 +56,4 @@ export interface AppInfo {
 }
 
 // 扩展 window 接口，添加 electron 对象
-declare global {
-  interface Window {
-    electron?: {
-      getProjects: () => Promise<ProjectConfig>;
-      selectProjectDirectory: () => Promise<SelectDirectoryResult | undefined>;
-      openProject: (projectPath: string) => Promise<boolean>;
-      saveProjects: (config: ProjectConfig) => Promise<boolean>;
-      onMainProcessError: (callback: (error: MainProcessError) => void) => void;
-      getAppInfo: () => Promise<AppInfo>;
-      getAppConfig: () => Promise<AppConfig>;
-      setEditorPath: (editorPath: string) => Promise<boolean>;
-      setDefaultEditor: (editor: EditorType) => Promise<boolean>;
-      setSearchShortcut: (shortcut: string) => Promise<boolean>;
-      closeSearchWindow: () => void;
-    };
-  }
-}
+declare global {}

@@ -5,10 +5,10 @@ import {
   sortableKeyboardCoordinates,
   useSortable,
 } from "@dnd-kit/sortable";
-import { Tabs, Spin } from "antd";
+import { Tabs, Spin, Button } from "antd";
 import type { ReactNode } from "react";
 import { Suspense, memo } from "react";
-import { MenuOutlined } from "@ant-design/icons";
+import { MenuOutlined, ReloadOutlined } from "@ant-design/icons";
 import { CSS } from "@dnd-kit/utilities";
 import {
   closestCenter,
@@ -30,8 +30,8 @@ interface TabItem {
 interface ProjectTabsProps {
   activeTab: string;
   tabItems: TabItem[];
-  onChange: (key: string) => void;
   onSortEnd: (items: string[]) => void;
+  onRefreshTab?: () => void;
 }
 
 function SortableTabItem({ item }: { item: TabItem }) {
@@ -67,7 +67,7 @@ function SortableTabItem({ item }: { item: TabItem }) {
 }
 
 // 使用 memo 优化 ProjectTabs 组件
-const ProjectTabs = memo(({ activeTab, tabItems, onChange, onSortEnd }: ProjectTabsProps) => {
+const ProjectTabs = memo(({ activeTab, tabItems, onSortEnd, onRefreshTab }: ProjectTabsProps) => {
   // 配置传感器
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -105,14 +105,14 @@ const ProjectTabs = memo(({ activeTab, tabItems, onChange, onSortEnd }: ProjectT
         <SortableContext items={tabItems.map(item => item.key)} strategy={horizontalListSortingStrategy}>
           <Tabs
             destroyOnHidden={true}
-            activeKey={activeTab}
+            defaultActiveKey={activeTab}
             items={tabItems.map(item => ({
               ...item,
               label: <SortableTabItem item={item} />,
             }))}
-            onChange={onChange}
             className="project-tabs"
             animated={{ tabPane: true }}
+            tabBarExtraContent={<Button icon={<ReloadOutlined />} onClick={() => onRefreshTab?.()} />}
           />
         </SortableContext>
       </DndContext>

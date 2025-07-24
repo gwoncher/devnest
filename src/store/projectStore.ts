@@ -16,15 +16,17 @@ interface ProjectState {
   setSearchQuery: (query: string) => void;
 
   // Thunks
-  fetchProjects: () => Promise<void>;
+  initProject: () => Promise<void>;
+  fetchProjects: () => Promise<ProjectConfig | undefined>;
   selectProjectDirectory: () => Promise<void>;
+  refreshAllDirectories: () => Promise<{ success: boolean; message: string; totalNewProjects: number }>;
   openProject: (project: Project) => Promise<void>;
   togglePinProject: (project: Project) => Promise<void>;
   setGroupOrder: (order: string[]) => Promise<void>;
   saveProjectConfig: (config: ProjectConfig) => Promise<void>;
 
   // Computed
-  getFilteredProjects: () => Project[];
+  getFilteredProjects: () => { key: string; label: string; projects: Project[] }[];
 }
 
 export const useProjectStore = create<ProjectState>((set, get) => ({
@@ -46,19 +48,22 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   setSearchQuery: query => set({ searchQuery: query }),
 
   // Thunks
+  initProject: async () => {
+    const { fetchProjects } = get();
+    const config = await fetchProjects();
+    if (config && config.projectDirectories.length > 0) {
+      set({ activeTab: config.projectDirectories[0] });
+    }
+  },
+
   fetchProjects: async () => {
     try {
       set({ loading: true });
-      const config = await window.electron?.getProjects();
-      console.log("config", config);
+      const config = await window.electron.getProjects();
       if (config) {
         set({ projectConfig: config });
-
-        // If there are project directories, set the first one as active tab
-        if (config.projectDirectories.length > 0) {
-          set({ activeTab: config.projectDirectories[0] });
-        }
       }
+      return config;
     } catch (error) {
       console.error("Failed to fetch projects:", error);
     } finally {
@@ -80,6 +85,39 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       }
     } catch (error) {
       console.error("Failed to select project directory:", error);
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  refreshAllDirectories: async () => {
+    const { fetchProjects } = get();
+    try {
+      set({ loading: true });
+      const result = await window.electron?.refreshAllDirectories();
+
+      if (result?.success) {
+        // 刷新项目列表
+        await fetchProjects();
+        return {
+          success: true,
+          message: result.message,
+          totalNewProjects: result.totalNewProjects || 0,
+        };
+      } else {
+        return {
+          success: false,
+          message: result?.message || "扫描失败",
+          totalNewProjects: 0,
+        };
+      }
+    } catch (error) {
+      console.error("Failed to refresh all directories:", error);
+      return {
+        success: false,
+        message: "扫描所有目录失败",
+        totalNewProjects: 0,
+      };
     } finally {
       set({ loading: false });
     }
@@ -128,25 +166,25 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   // Computed
 
   getFilteredProjects: () => {
-    const { projectConfig, activeTab, searchQuery } = get();
+    const { projectConfig, searchQuery } = get();
 
-    // Filter by active tab (directory)
-    let filteredProjects = projectConfig.projects;
-    if (activeTab !== "all") {
-      filteredProjects = filteredProjects.filter(project => project.path.startsWith(activeTab));
-    }
+    const tabItems = projectConfig.projectDirectories.map(dir => {
+      let projects = projectConfig.projects.filter(project => project.path.startsWith(dir));
+      if (searchQuery) {
+        projects = projects.filter(project => project.name.toLowerCase().includes(searchQuery.toLowerCase()));
+      }
+      projects.sort((a, b) => {
+        if (a.pinned && !b.pinned) return -1;
+        if (!a.pinned && b.pinned) return 1;
+        return a.name.localeCompare(b.name);
+      });
 
-    // Filter by search query
-    if (searchQuery) {
-      const lowercaseQuery = searchQuery.toLowerCase();
-      filteredProjects = filteredProjects.filter(project => project.name.toLowerCase().includes(lowercaseQuery));
-    }
-
-    // Sort pinned projects first
-    return [...filteredProjects].sort((a, b) => {
-      if (a.pinned && !b.pinned) return -1;
-      if (!a.pinned && b.pinned) return 1;
-      return a.name.localeCompare(b.name);
+      return {
+        key: dir,
+        label: dir.split("/").pop() || dir,
+        projects: projects,
+      };
     });
+    return tabItems;
   },
 }));
